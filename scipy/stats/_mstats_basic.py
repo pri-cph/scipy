@@ -7,8 +7,7 @@ An extension of scipy.stats._stats_py to support masked arrays
 
 __all__ = ['argstoarray',
            'count_tied_groups',
-           'describe',
-           'f_oneway', 'find_repeats','friedmanchisquare',
+           'describe','f_oneway', 'find_repeats','friedmanchisquare',
            'kendalltau','kendalltau_seasonal','kruskal','kruskalwallis',
            'ks_twosamp', 'ks_2samp', 'kurtosis', 'kurtosistest',
            'ks_1samp', 'kstest',

@@ -3923,7 +3923,7 @@ def f_oneway(*samples, s0=0, axis=0):
     msb = ssbn / dfbn
     msw = sswn / dfwn
     with np.errstate(divide='ignore', invalid='ignore'):
-        f = msb / (msw+s0)
+        f = msb / (msw + s0)
 
     prob = special.fdtrc(dfbn, dfwn, f)   # equivalent to stats.f.sf
 
