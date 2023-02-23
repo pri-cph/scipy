@@ -1314,7 +1314,7 @@ def sen_seasonal_slopes(x):
 Ttest_1sampResult = namedtuple('Ttest_1sampResult', ('statistic', 'pvalue'))
 
 
-def ttest_1samp(a, popmean, axis=0, alternative='two-sided'):
+def ttest_1samp(a, popmean, a0=0, axis=0, alternative='two-sided'):
     """
     Calculates the T-test for the mean of ONE group of scores.
 
@@ -1364,7 +1364,7 @@ def ttest_1samp(a, popmean, axis=0, alternative='two-sided'):
     df = ma.asanyarray(n - 1.0)
     svar = ((n - 1.0) * v) / df
     with np.errstate(divide='ignore', invalid='ignore'):
-        t = (x - popmean) / ma.sqrt(svar / n)
+        t = (x - popmean) / (ma.sqrt(svar / n)+s0)
 
     t, prob = scipy.stats._stats_py._ttest_finish(df, t, alternative)
     return Ttest_1sampResult(t, prob)
@@ -1376,7 +1376,7 @@ ttest_onesamp = ttest_1samp
 Ttest_indResult = namedtuple('Ttest_indResult', ('statistic', 'pvalue'))
 
 
-def ttest_ind(a, b, axis=0, equal_var=True, alternative='two-sided'):
+def ttest_ind(a, b, s0=0, axis=0, equal_var=True, alternative='two-sided'):
     """
     Calculates the T-test for the means of TWO INDEPENDENT samples of scores.
 
@@ -1448,7 +1448,7 @@ def ttest_ind(a, b, axis=0, equal_var=True, alternative='two-sided'):
         denom = ma.sqrt(vn1 + vn2)
 
     with np.errstate(divide='ignore', invalid='ignore'):
-        t = (x1-x2) / denom
+        t = (x1-x2) / (denom+s0)
 
     t, prob = scipy.stats._stats_py._ttest_finish(df, t, alternative)
     return Ttest_indResult(t, prob)
@@ -1457,7 +1457,7 @@ def ttest_ind(a, b, axis=0, equal_var=True, alternative='two-sided'):
 Ttest_relResult = namedtuple('Ttest_relResult', ('statistic', 'pvalue'))
 
 
-def ttest_rel(a, b, axis=0, alternative='two-sided'):
+def ttest_rel(a, b, s0=0, axis=0, alternative='two-sided'):
     """
     Calculates the T-test on TWO RELATED samples of scores, a and b.
 
@@ -1509,7 +1509,7 @@ def ttest_rel(a, b, axis=0, alternative='two-sided'):
     v = d.var(axis=axis, ddof=1)
     denom = ma.sqrt(v / n)
     with np.errstate(divide='ignore', invalid='ignore'):
-        t = dm / denom
+        t = dm / (denom+s0)
 
     t, prob = scipy.stats._stats_py._ttest_finish(df, t, alternative)
     return Ttest_relResult(t, prob)
@@ -3348,7 +3348,7 @@ def sem(a, axis=0, ddof=1):
 F_onewayResult = namedtuple('F_onewayResult', ('statistic', 'pvalue'))
 
 
-def f_oneway(*args):
+def f_oneway(*args, s0=0):
     """
     Performs a 1-way ANOVA, returning an F-value and probability given
     any number of groups.  From Heiman, pp.394-7.
@@ -3375,7 +3375,7 @@ def f_oneway(*args):
     dfwg = ntot - ngroups
     msb = ssbg/float(dfbg)
     msw = sswg/float(dfwg)
-    f = msb/msw
+    f = msb/(msw+s0)
     prob = special.fdtrc(dfbg, dfwg, f)  # equivalent to stats.f.sf
 
     return F_onewayResult(f, prob)

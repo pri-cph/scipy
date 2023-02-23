@@ -3710,7 +3710,7 @@ def _first(arr, axis):
     return np.take_along_axis(arr, np.array(0, ndmin=arr.ndim), axis)
 
 
-def f_oneway(*samples, axis=0):
+def f_oneway(*samples, s0=0, axis=0):
     """Perform one-way ANOVA.
 
     The one-way ANOVA tests the null hypothesis that two or more groups have
@@ -3923,7 +3923,7 @@ def f_oneway(*samples, axis=0):
     msb = ssbn / dfbn
     msw = sswn / dfwn
     with np.errstate(divide='ignore', invalid='ignore'):
-        f = msb / msw
+        f = msb / (msw+s0)
 
     prob = special.fdtrc(dfbn, dfwn, f)   # equivalent to stats.f.sf
 
@@ -6100,7 +6100,7 @@ def unpack_TtestResult(res):
 
 @_axis_nan_policy_factory(pack_TtestResult, default_axis=0, n_samples=2,
                           result_to_tuple=unpack_TtestResult, n_outputs=6)
-def ttest_1samp(a, popmean, axis=0, nan_policy='propagate',
+def ttest_1samp(a, popmean, s0=0, axis=0, nan_policy='propagate',
                 alternative="two-sided"):
     """Calculate the T-test for the mean of ONE group of scores.
 
@@ -6270,7 +6270,7 @@ def ttest_1samp(a, popmean, axis=0, nan_policy='propagate',
     denom = np.sqrt(v / n)
 
     with np.errstate(divide='ignore', invalid='ignore'):
-        t = np.divide(d, denom)
+        t = np.divide(d, (denom+s0))
     t, prob = _ttest_finish(df, t, alternative)
 
     # when nan_policy='omit', `df` can be different for different axis-slices
@@ -6332,7 +6332,7 @@ def _ttest_finish(df, t, alternative):
     return t, pval
 
 
-def _ttest_ind_from_stats(mean1, mean2, denom, df, alternative):
+def _ttest_ind_from_stats(mean1, mean2, denom, df, s0, alternative):
 
     d = mean1 - mean2
     with np.errstate(divide='ignore', invalid='ignore'):
@@ -6366,7 +6366,7 @@ Ttest_indResult = namedtuple('Ttest_indResult', ('statistic', 'pvalue'))
 
 
 def ttest_ind_from_stats(mean1, std1, nobs1, mean2, std2, nobs2,
-                         equal_var=True, alternative="two-sided"):
+                         s0=0, equal_var=True, alternative="two-sided"):
     r"""
     T-test for means of two independent samples from descriptive statistics.
 
@@ -6491,7 +6491,7 @@ def ttest_ind_from_stats(mean1, std1, nobs1, mean2, std2, nobs2,
         df, denom = _unequal_var_ttest_denom(std1**2, nobs1,
                                              std2**2, nobs2)
 
-    res = _ttest_ind_from_stats(mean1, mean2, denom, df, alternative)
+    res = _ttest_ind_from_stats(mean1, mean2, denom, df, s0, alternative)
     return Ttest_indResult(*res)
 
 
@@ -6786,7 +6786,7 @@ def ttest_ind(a, b, axis=0, equal_var=True, nan_policy='propagate',
                              "trimmed tests.")
         a = ma.masked_invalid(a)
         b = ma.masked_invalid(b)
-        return mstats_basic.ttest_ind(a, b, axis, equal_var, alternative)
+        return mstats_basic.ttest_ind(a, b, s0, axis, equal_var, alternative)
 
     if a.size == 0 or b.size == 0:
         return _ttest_nans(a, b, axis, Ttest_indResult)
@@ -6822,7 +6822,7 @@ def ttest_ind(a, b, axis=0, equal_var=True, nan_policy='propagate',
             df, denom = _equal_var_ttest_denom(v1, n1, v2, n2)
         else:
             df, denom = _unequal_var_ttest_denom(v1, n1, v2, n2)
-        res = _ttest_ind_from_stats(m1, m2, denom, df, alternative)
+        res = _ttest_ind_from_stats(m1, m2, denom, df, s0, alternative)
     return Ttest_indResult(*res)
 
 
@@ -7026,7 +7026,7 @@ def _get_len(a, axis, msg):
 @_axis_nan_policy_factory(pack_TtestResult, default_axis=0, n_samples=2,
                           result_to_tuple=unpack_TtestResult, n_outputs=6,
                           paired=True)
-def ttest_rel(a, b, axis=0, nan_policy='propagate', alternative="two-sided"):
+def ttest_rel(a, b, s0=0, axis=0, nan_policy='propagate', alternative="two-sided"):
     """Calculate the t-test on TWO RELATED samples of scores, a and b.
 
     This is a test for the null hypothesis that two related or
@@ -7146,7 +7146,7 @@ def ttest_rel(a, b, axis=0, nan_policy='propagate', alternative="two-sided"):
     denom = np.sqrt(v / n)
 
     with np.errstate(divide='ignore', invalid='ignore'):
-        t = np.divide(dm, denom)
+        t = np.divide(dm, (denom+s0))
     t, prob = _ttest_finish(df, t, alternative)
 
     # when nan_policy='omit', `df` can be different for different axis-slices
