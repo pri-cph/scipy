@@ -3250,7 +3250,7 @@ def trim_mean(a, proportiontocut, axis=0):
 F_onewayResult = namedtuple('F_onewayResult', ('statistic', 'pvalue'))
 
 
-def f_oneway(*args):
+def f_oneway(*args, s0=0):
     """
     Perform one-way ANOVA.
 
@@ -3346,7 +3346,7 @@ def f_oneway(*args):
     dfwn = bign - num_groups
     msb = ssbn / dfbn
     msw = sswn / dfwn
-    f = msb / msw
+    f = msb / (msw+s0)
 
     prob = special.fdtrc(dfbn, dfwn, f)   # equivalent to stats.f.sf
 
@@ -4902,7 +4902,7 @@ def _two_sample_transform(u, v):
 Ttest_1sampResult = namedtuple('Ttest_1sampResult', ('statistic', 'pvalue'))
 
 
-def ttest_1samp(a, popmean, axis=0, nan_policy='propagate'):
+def ttest_1samp(a, popmean, s0=0, axis=0, nan_policy='propagate'):
     """
     Calculate the T-test for the mean of ONE group of scores.
 
@@ -4979,7 +4979,7 @@ def ttest_1samp(a, popmean, axis=0, nan_policy='propagate'):
     denom = np.sqrt(v / n)
 
     with np.errstate(divide='ignore', invalid='ignore'):
-        t = np.divide(d, denom)
+        t = np.divide(d, (denom+s0))
     t, prob = _ttest_finish(df, t)
 
     return Ttest_1sampResult(t, prob)
@@ -4994,11 +4994,11 @@ def _ttest_finish(df, t):
     return t, prob
 
 
-def _ttest_ind_from_stats(mean1, mean2, denom, df):
+def _ttest_ind_from_stats(mean1, mean2, denom, df, s0):
 
     d = mean1 - mean2
     with np.errstate(divide='ignore', invalid='ignore'):
-        t = np.divide(d, denom)
+        t = np.divide(d, (denom+s0))
     t, prob = _ttest_finish(df, t)
 
     return (t, prob)
@@ -5028,7 +5028,7 @@ Ttest_indResult = namedtuple('Ttest_indResult', ('statistic', 'pvalue'))
 
 
 def ttest_ind_from_stats(mean1, std1, nobs1, mean2, std2, nobs2,
-                         equal_var=True):
+                         s0=0, equal_var=True):
     r"""
     T-test for means of two independent samples from descriptive statistics.
 
@@ -5134,11 +5134,11 @@ def ttest_ind_from_stats(mean1, std1, nobs1, mean2, std2, nobs2,
         df, denom = _unequal_var_ttest_denom(std1**2, nobs1,
                                              std2**2, nobs2)
 
-    res = _ttest_ind_from_stats(mean1, mean2, denom, df)
+    res = _ttest_ind_from_stats(mean1, mean2, denom, df, s0)
     return Ttest_indResult(*res)
 
 
-def ttest_ind(a, b, axis=0, equal_var=True, nan_policy='propagate'):
+def ttest_ind(a, b, s0=0, axis=0, equal_var=True, nan_policy='propagate'):
     """
     Calculate the T-test for the means of *two independent* samples of scores.
 
@@ -5246,7 +5246,7 @@ def ttest_ind(a, b, axis=0, equal_var=True, nan_policy='propagate'):
     if contains_nan and nan_policy == 'omit':
         a = ma.masked_invalid(a)
         b = ma.masked_invalid(b)
-        return mstats_basic.ttest_ind(a, b, axis, equal_var)
+        return mstats_basic.ttest_ind(a, b, s0, axis, equal_var)
 
     if a.size == 0 or b.size == 0:
         return Ttest_indResult(np.nan, np.nan)
@@ -5261,7 +5261,7 @@ def ttest_ind(a, b, axis=0, equal_var=True, nan_policy='propagate'):
     else:
         df, denom = _unequal_var_ttest_denom(v1, n1, v2, n2)
 
-    res = _ttest_ind_from_stats(np.mean(a, axis), np.mean(b, axis), denom, df)
+    res = _ttest_ind_from_stats(np.mean(a, axis), np.mean(b, axis), denom, df, s0)
 
     return Ttest_indResult(*res)
 
@@ -5269,7 +5269,7 @@ def ttest_ind(a, b, axis=0, equal_var=True, nan_policy='propagate'):
 Ttest_relResult = namedtuple('Ttest_relResult', ('statistic', 'pvalue'))
 
 
-def ttest_rel(a, b, axis=0, nan_policy='propagate'):
+def ttest_rel(a, b, s0=0, axis=0, nan_policy='propagate'):
     """
     Calculate the t-test on TWO RELATED samples of scores, a and b.
 
@@ -5344,7 +5344,7 @@ def ttest_rel(a, b, axis=0, nan_policy='propagate'):
         m = ma.mask_or(ma.getmask(a), ma.getmask(b))
         aa = ma.array(a, mask=m, copy=True)
         bb = ma.array(b, mask=m, copy=True)
-        return mstats_basic.ttest_rel(aa, bb, axis)
+        return mstats_basic.ttest_rel(aa, bb, s0, axis)
 
     if a.shape[axis] != b.shape[axis]:
         raise ValueError('unequal length arrays')
@@ -5361,7 +5361,7 @@ def ttest_rel(a, b, axis=0, nan_policy='propagate'):
     denom = np.sqrt(v / n)
 
     with np.errstate(divide='ignore', invalid='ignore'):
-        t = np.divide(dm, denom)
+        t = np.divide(dm, (denom+s0))
     t, prob = _ttest_finish(df, t)
 
     return Ttest_relResult(t, prob)
