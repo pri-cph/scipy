@@ -1313,7 +1313,7 @@ def sen_seasonal_slopes(x):
 Ttest_1sampResult = namedtuple('Ttest_1sampResult', ('statistic', 'pvalue'))
 
 
-def ttest_1samp(a, popmean, a0=0, axis=0, alternative='two-sided'):
+def ttest_1samp(a, popmean, s0=0, axis=0, alternative='two-sided'):
     """
     Calculates the T-test for the mean of ONE group of scores.
 

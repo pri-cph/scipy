@@ -6336,7 +6336,7 @@ def _ttest_ind_from_stats(mean1, mean2, denom, df, s0, alternative):
 
     d = mean1 - mean2
     with np.errstate(divide='ignore', invalid='ignore'):
-        t = np.divide(d, denom)
+        t = np.divide(d, (denom+s0))
     t, prob = _ttest_finish(df, t, alternative)
 
     return (t, prob)
@@ -6539,7 +6539,7 @@ def _ttest_nans(a, b, axis, namedtuple_type):
     return namedtuple_type(t, p)
 
 
-def ttest_ind(a, b, axis=0, equal_var=True, nan_policy='propagate',
+def ttest_ind(a, b, s0=0, axis=0, equal_var=True, nan_policy='propagate',
               permutations=None, random_state=None, alternative="two-sided",
               trim=0):
     """
